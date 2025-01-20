@@ -8,6 +8,31 @@ DOWN_DIR = (1, 0)
 LEFT_DIR = (0, -1)
 RIGHT_DIR = (0, 1)
 
+def get_cell_for_direction(cells, direction, pos):
+    return cells[pos[0] + direction[0]][pos[1] + direction[1]]
+
+
+def check_valid_direction(cells, direction, pos):
+    if pos[0] == 0 and direction[0] == -1:
+        return False
+    if pos[0] == (len(cells) - 1) and direction[0] == 1:
+        return False
+    if pos[1] == 0 and direction[1] == -1:
+        return False
+    if pos[1] == (len(cells[0]) - 1) and direction[1] == 1:
+        return False
+    return True
+
+check_up = lambda cells, pos: check_valid_direction(cells, UP_DIR, pos)
+check_down = lambda cells, pos: check_valid_direction(cells, DOWN_DIR, pos)
+check_left = lambda cells, pos: check_valid_direction(cells, LEFT_DIR, pos)
+check_right = lambda cells, pos: check_valid_direction(cells, RIGHT_DIR, pos)
+
+ext_check_up = lambda cells, pos, predicate: check_up(cells, pos) and predicate(get_cell_for_direction(cells, UP_DIR, pos)) == True
+ext_check_down = lambda cells, pos, predicate: check_down(cells, pos) and predicate(get_cell_for_direction(cells, DOWN_DIR, pos)) == True
+ext_check_left = lambda cells, pos, predicate: check_left(cells, pos) and predicate(get_cell_for_direction(cells, LEFT_DIR, pos)) == True
+ext_check_right = lambda cells, pos, predicate: check_right(cells, pos) and predicate(get_cell_for_direction(cells, RIGHT_DIR, pos)) == True
+
 class Maze:
     def __init__(
         self,
@@ -144,3 +169,47 @@ class Maze:
         for i in range(len(self._cells)):
             for j in range(len(self._cells[i])):
                 self._cells[i][j].visited = False
+    
+    def solve(self):
+        return self._solve_r(0, 0)
+
+    def _solve_r(self, i, j):
+        self._animate()
+        self._cells[i][j].visited = True
+
+        if i == (self.num_cols - 1) and j == (self.num_rows - 1):
+            return True
+        
+        get_cell = lambda dir: get_cell_for_direction(self._cells, dir, (i, j))
+
+        current = self._cells[i][j]
+        # check for up first
+        if current.has_top_wall == False and ext_check_up(self._cells, (i, j), lambda c: c.visited == False):
+            current.draw_move(get_cell(UP_DIR))
+            result = self._solve_r(i + UP_DIR[0], j + UP_DIR[1])
+            if result == True:
+                return True
+        
+        # check for right
+        if current.has_right_wall == False and ext_check_right(self._cells, (i, j), lambda c: c.visited == False):
+            current.draw_move(get_cell(RIGHT_DIR))
+            result = self._solve_r(i + RIGHT_DIR[0], j + RIGHT_DIR[1])
+            if result == True:
+                return True
+            
+        # check for down
+        if current.has_bottom_wall == False and ext_check_down(self._cells, (i, j), lambda c: c.visited == False):
+            current.draw_move(get_cell(DOWN_DIR))
+            result = self._solve_r(i + DOWN_DIR[0], j + DOWN_DIR[1])
+            if result == True:
+                return True 
+            
+        # check for left
+        if current.has_left_wall == False and ext_check_left(self._cells, (i, j), lambda c: c.visited == False):
+            current.draw_move(get_cell(LEFT_DIR))
+            result = self._solve_r(i + LEFT_DIR[0], j + LEFT_DIR[1])
+            if result == True:
+                return True
+
+        return False
+        
