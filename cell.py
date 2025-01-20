@@ -23,6 +23,7 @@ class Cell:
         self._y1 = y1
         self._y2 = y2
         self._win = win
+        self.visited = False
 
     def set_all_walls(self):
         self.has_left_wall = True
@@ -37,23 +38,32 @@ class Cell:
             self._x2 = lower_right.x
             self._y2 = lower_right.y
 
-        if self._x1 == None:
+        if self._x1 == None or self._x2 == None or self._y1 == None or self._y2 == None:
             raise Exception("coordinates are not set")
+
+        def choose_color(has_wall):
+            if has_wall:
+                return "black"
+            else:
+                return "#d9d9d9"
 
         lower_left = Point(self._x1, self._y2)
         upper_right = Point(self._x2, self._y1)
+        u_left = Point(self._x1, self._y1)
+        l_right = Point(self._x2, self._y2)
 
-        if self.has_left_wall == True:
-            self._win.draw_line(Line(upper_left, lower_left), "black")
+        if self._win != None:
+            self._win.draw_line(Line(u_left, lower_left), choose_color(self.has_left_wall))
+        
 
-        if self.has_right_wall == True:
-            self._win.draw_line(Line(upper_right, lower_right), "black")
+        if self._win != None:
+            self._win.draw_line(Line(upper_right, l_right), choose_color(self.has_right_wall))
 
-        if self.has_top_wall == True:
-            self._win.draw_line(Line(upper_left, upper_right), "black")
+        if self._win != None:
+            self._win.draw_line(Line(u_left, upper_right), choose_color(self.has_top_wall))
 
-        if self.has_bottom_wall == True:
-            self._win.draw_line(Line(lower_left, lower_right), "black")
+        if self._win != None:
+            self._win.draw_line(Line(lower_left, l_right), choose_color(self.has_bottom_wall))
     
     def draw_move(self, to_cell, undo=False):
         x_center = (self._x2 + self._x1) / 2
